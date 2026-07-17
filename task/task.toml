@@ -1,0 +1,33 @@
+artifacts = ["/app/bin/mesh-supervisor", "/app/analysis.json"]
+
+[task]
+name = "dynamo/generation-rollout-supervisor"
+description = "Repair a generation-safe Linux service supervisor with transactional rollouts, preserved deadlines, and descendant cleanup."
+
+[metadata]
+category = "Systems Infrastructure and Operations"
+subcategory = "OS process and service management"
+model_tested = "Opus-4.8"
+agent_tested = "Terminus-2"
+task_objective = ["fix", "debug", "refactor"]
+artifact_type = ["service_or_daemon", "codebase", "binary_executable_or_library"]
+expert_time_estimate_hours = 28
+
+difficulty_explanation = "The agent must repair four coupled lifecycle defects in an event-driven Linux supervisor: stale generation identity, partial dependency rollout commits, timeout extension across state restoration, and escaped double-fork descendants. The supervisor, workers, and scenarios are purpose-built synthetic artifacts, but they exercise real Linux processes, pipes, signals, descendants, monotonic deadlines, and event ordering to reproduce realistic production complexity deterministically. This is work performed by platform, SRE, container-runtime, and service-manager engineers because incorrect lifecycle handling can cause partial deployments, leaked daemons, duplicate restarts, downtime, or termination of the wrong service generation. Plausible local fixes leave other invariants broken, while the verifier varies dependency structure, readiness ordering, failure points, deadlines, and helper behavior."
+solution_explanation = "Use immutable per-generation event-source identities, one explicit rollout transaction for the transitive dependent closure, absolute monotonic timestamps for every deadline, and generation-wide descendant ownership. Commit replacements only after all are ready; otherwise terminate transaction-created generations and retain the old committed graph. Preserve counters and absolute deadlines through checkpoint serialization, and operate as a child subreaper so daemonized helpers can be terminated and collected."
+verification_explanation = "The verifier rebuilds the submitted source, validates the analysis artifact, and executes independent real-process scenarios. It checks dependency commit ordering, absence of partial commits during rollback, all-ready-before-any-commit behavior for successful rollouts, runtime timeout timing across a checkpoint, exact helper registration and reaping, exact-once exits, and zero live processes after shutdown. Timing bands are wider than normal scheduler jitter but separate preserved absolute deadlines from incorrectly restarted durations."
+
+[verifier]
+timeout_sec = 120.0
+
+[agent]
+timeout_sec = 3600.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 2048
+storage_mb = 10240
+gpus = 0
+allow_internet = true
+mcp_servers = []

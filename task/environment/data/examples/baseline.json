@@ -1,0 +1,8 @@
+{
+  "services": [
+    {"name":"db","depends_on":[],"mode":"cooperative","ready_delay_ms":20,"startup_timeout_ms":500,"grace_ms":100},
+    {"name":"api","depends_on":["db"],"mode":"cooperative","ready_delay_ms":30,"startup_timeout_ms":500,"grace_ms":100}
+  ],
+  "actions": [{"at_ms":250,"op":"shutdown"}],
+  "max_runtime_ms":2000
+}
